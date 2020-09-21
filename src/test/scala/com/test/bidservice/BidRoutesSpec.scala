@@ -6,8 +6,8 @@ import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.test.bidservice.actor.BidActor
+import com.test.bidservice.model.campaign.Banner
 import com.test.bidservice.model.request._
-import com.test.bidservice.model.response.BannerWithPrice
 import com.test.bidservice.route.BidRoutes
 import com.test.bidservice.service.BidRequestService
 import com.test.bidservice.util.{JsonMatcher, JsonSupport}
@@ -73,16 +73,15 @@ class BidRoutesSpec extends AnyWordSpecLike
         device = Some(device)
       )
 
-      val banner = BannerWithPrice(
+      val banner = Banner(
         id = 1,
         src = "https://business.eskimi.com/wp-content/uploads/2020/06/openGraph.jpeg",
         width = 300,
-        height = 250,
-        price = bidFloor
+        height = 250
       )
 
       val bidEntity = Marshal(bidRequest).to[MessageEntity].futureValue
-      when(bidRequestValidatorMock.processBid(bidRequest)).thenReturn(Some(("1", List(banner))))
+      when(bidRequestValidatorMock.processBid(bidRequest)).thenReturn(Some(("1", bidFloor, List(banner))))
 
       val request = Post("/bids").withEntity(bidEntity)
 
@@ -95,6 +94,7 @@ class BidRoutesSpec extends AnyWordSpecLike
           |{
           |"id": "response1",
           |"bidRequestId": "SGu1Jpq1IO",
+          |"price": 3.12123,
           |"adId": "1",
           |"banner":
           |[
@@ -102,8 +102,7 @@ class BidRoutesSpec extends AnyWordSpecLike
           |  "id": 1,
           |  "height": 250,
           |  "width": 300,
-          |  "src": "https://business.eskimi.com/wp-content/uploads/2020/06/openGraph.jpeg",
-          |  "price": 3.12123
+          |  "src": "https://business.eskimi.com/wp-content/uploads/2020/06/openGraph.jpeg"
           |}
           |]
         }""".stripMargin

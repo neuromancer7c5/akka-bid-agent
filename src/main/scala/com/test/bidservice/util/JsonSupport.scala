@@ -17,5 +17,5 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
 
   implicit val bannerJsonFormat = jsonFormat4(Banner)
   implicit val bannerWithPriceJsonFormat = jsonFormat5(BannerWithPrice)
-  implicit val bidResponseJsonFormat = jsonFormat4(BidResponse)
+  implicit val bidResponseJsonFormat = jsonFormat5(BidResponse)
 }

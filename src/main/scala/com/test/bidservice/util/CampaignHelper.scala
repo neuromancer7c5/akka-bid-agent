@@ -1,12 +1,11 @@
 package com.test.bidservice.util
 
 import com.test.bidservice.model.campaign.{Banner, Campaign, Targeting}
-import com.test.bidservice.model.campaign.Campaign
 
 object CampaignHelper {
   def getCampaigns: Seq[Campaign] = {
     val firstCampaign = Campaign(
-      id = "1",
+      id = 1,
       country = "US",
       targeting = Targeting(
         targetedSiteIds = LazyList(
@@ -39,7 +38,7 @@ object CampaignHelper {
     )
 
     val secondCampaign = Campaign(
-      id = "2",
+      id = 2,
       country = "GB",
       targeting = Targeting(
         targetedSiteIds = LazyList(
@@ -72,7 +71,7 @@ object CampaignHelper {
     )
 
     val thirdCampaign = Campaign(
-      id = "3",
+      id = 3,
       country = "LT",
       targeting = Targeting(
         targetedSiteIds = LazyList(

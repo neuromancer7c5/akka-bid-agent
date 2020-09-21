@@ -1,10 +1,8 @@
-package com.test.bidservice
+package com.test.bidservice.service.impl
 
-import com.test.bidservice.model.request.{BidRequest, BidUser, Device, Geo, Impression, Site}
+import com.test.bidservice.model.request._
 import com.test.bidservice.model.response.BannerWithPriceBuilder
-import com.test.bidservice.service.impl.BidRequestServiceImpl
 import com.test.bidservice.util.CampaignHelper
-import com.test.bidservice.model.request.Device
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
 
@@ -649,16 +647,12 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
           device = Some(device)
         )
 
-        val expectedBannersWithPrice = List(
-          BannerWithPriceBuilder(
+        val expectedBanners = List(
             CampaignHelper.getCampaigns(2).banners.head,
-            bidFloor),
-          BannerWithPriceBuilder(
-            CampaignHelper.getCampaigns(2).banners(1),
-            bidFloor)
+            CampaignHelper.getCampaigns(2).banners(1)
         )
-        val expectedCampaignId = CampaignHelper.getCampaigns(2).id
-        bidRequestServiceImpl.processBid(bidRequest) should be (Some((expectedCampaignId,expectedBannersWithPrice)))
+        val expectedCampaignId = CampaignHelper.getCampaigns(2).id.toString
+        bidRequestServiceImpl.processBid(bidRequest) should be (Some((expectedCampaignId, bidFloor, expectedBanners)))
       }
     }
     "return None" when {

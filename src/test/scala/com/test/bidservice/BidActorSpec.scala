@@ -3,6 +3,7 @@ package com.test.bidservice
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import com.test.bidservice.actor.BidActor
 import com.test.bidservice.actor.BidActor.{GetBidResponse, ProcessBid}
+import com.test.bidservice.model.campaign.Banner
 import com.test.bidservice.model.request._
 import com.test.bidservice.model.response.{BannerWithPrice, BidResponse}
 import com.test.bidservice.service.BidRequestService
@@ -51,24 +52,24 @@ class BidActorSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike  with 
         device = Some(device)
       )
       val adId = "1"
-      val banner = BannerWithPrice(
+      val banner = Banner(
         id = 1,
         src = "https://business.eskimi.com/wp-content/uploads/2020/06/openGraph.jpeg",
         width = 300,
-        height = 250,
-        price = bidFloor
+        height = 250
       )
       val getBidResponse = GetBidResponse(
         Some(BidResponse(
           id = "response1",
           bidRequestId = requestId,
+          price = bidFloor,
           adId = Some(adId),
           banner = List(banner)
         ))
       )
       val replyProbe = createTestProbe[GetBidResponse]()
       val underTest = spawn(BidActor(bidRequestValidatorMock))
-      when(bidRequestValidatorMock.processBid(bidRequest)).thenReturn(Some((adId, List(banner))))
+      when(bidRequestValidatorMock.processBid(bidRequest)).thenReturn(Some((adId, bidFloor, List(banner))))
       underTest ! ProcessBid(bidRequest, replyProbe.ref)
       replyProbe.expectMessage(getBidResponse)
     }
