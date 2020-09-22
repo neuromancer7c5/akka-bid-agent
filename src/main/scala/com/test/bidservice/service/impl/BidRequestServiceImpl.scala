@@ -18,7 +18,7 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
     }
   }
 
-  def getBannersWithPrice(bidRequest: BidRequest,
+  private [impl] def getBannersWithPrice(bidRequest: BidRequest,
                           campaign: Campaign): List[(Double, Banner)] = {
     bidRequest.imp.map { impressions =>
       impressions.flatMap { impression =>
@@ -32,7 +32,7 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
   }
 
 
-  def getPrice(requestBid: Double,
+  private [impl] def getPrice(requestBid: Double,
                campaignBid: Double): Option[Double] = {
     if (requestBid <= campaignBid) {
       Some(requestBid)
@@ -41,7 +41,7 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
     }
   }
 
-  def getBanners(impression: Impression,
+  private [impl] def getBanners(impression: Impression,
                  banners: List[Banner]): List[Banner] = {
     banners.filter(banner =>
       compareDimension(
@@ -58,14 +58,14 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
     )
   }
 
-  def getBidRequestCountry(bidRequest: BidRequest): Option[String] = {
+  private [impl] def getBidRequestCountry(bidRequest: BidRequest): Option[String] = {
     bidRequest.device.flatMap(device =>
       device.geo.flatMap { geo =>
         geo.country
       }
     )
   }
-  def compareDimension(requestValue: Option[Int],
+  private [impl] def compareDimension(requestValue: Option[Int],
                        requestMinValue: Option[Int],
                        requestMaxValue: Option[Int],
                        bannerValue: Int): Boolean = {
