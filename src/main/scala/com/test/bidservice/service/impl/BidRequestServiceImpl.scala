@@ -14,26 +14,31 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
         .flatMap { campaign =>
           getBannersWithPrice(bidRequest, campaign).map(bannerWithPrice =>
             (campaign.id.toString, bannerWithPrice._1, bannerWithPrice._2))
-        }.headOption
+        }
+        .headOption
     }
   }
 
   private [impl] def getBannersWithPrice(bidRequest: BidRequest,
-                          campaign: Campaign): List[(Double, Banner)] = {
-    bidRequest.imp.map { impressions =>
-      impressions.flatMap { impression =>
-        val price = getPrice(impression.bidFloor.getOrElse(0.1d), campaign.bid)
-        price.map { value =>
-          val banners = getBanners(impression, campaign.banners)
-          banners.map((value,_))
-        }.getOrElse(List.empty)
+                                         campaign: Campaign): List[(Double, Banner)] = {
+    bidRequest.imp
+      .map { impressions =>
+        impressions.flatMap { impression =>
+          val price = getPrice(impression.bidFloor.getOrElse(0.1d), campaign.bid)
+          price
+            .map { value =>
+              val banners = getBanners(impression, campaign.banners)
+              banners.map((value,_))
+            }
+            .getOrElse(List.empty)
+        }
       }
-    }.getOrElse(List.empty)
+      .getOrElse(List.empty)
   }
 
 
   private [impl] def getPrice(requestBid: Double,
-               campaignBid: Double): Option[Double] = {
+                              campaignBid: Double): Option[Double] = {
     if (requestBid <= campaignBid) {
       Some(requestBid)
     } else {
@@ -42,7 +47,7 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
   }
 
   private [impl] def getBanners(impression: Impression,
-                 banners: List[Banner]): List[Banner] = {
+                                banners: List[Banner]): List[Banner] = {
     banners.filter(banner =>
       compareDimension(
         impression.h,
@@ -66,9 +71,9 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
     } yield country
   }
   private [impl] def compareDimension(requestValue: Option[Int],
-                       requestMinValue: Option[Int],
-                       requestMaxValue: Option[Int],
-                       bannerValue: Int): Boolean = {
+                                      requestMinValue: Option[Int],
+                                      requestMaxValue: Option[Int],
+                                      bannerValue: Int): Boolean = {
     (requestValue, requestMinValue, requestMaxValue)  match {
       case (Some(value), _, _) => value == bannerValue
       case (None, Some(minValue), Some(maxValue)) =>

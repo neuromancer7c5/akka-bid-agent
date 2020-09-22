@@ -30,7 +30,7 @@ class BidRoutes(bidRegistry: ActorRef[BidActor.ProcessBid])
         post {
           entity(as[BidRequest]) { bidRequest =>
             onSuccess(processBid(bidRequest)) { resp =>
-              resp.optionBidResonse match {
+              resp.bidResonseOpt match {
                 case None => complete(StatusCodes.NoContent)
                 case Some(response) => complete(response)
               }

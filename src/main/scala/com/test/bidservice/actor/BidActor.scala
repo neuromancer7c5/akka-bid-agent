@@ -9,7 +9,7 @@ import com.test.bidservice.service.BidRequestService
 object BidActor {
   final case class ProcessBid(bidRequest: BidRequest, replyTo: ActorRef[GetBidResponse])
 
-  final case class GetBidResponse(optionBidResonse: Option[BidResponse])
+  final case class GetBidResponse(bidResonseOpt: Option[BidResponse])
 
   def apply(bidRequestValidator: BidRequestService): Behavior[ProcessBid] = bidAgent(0, bidRequestValidator)
 
