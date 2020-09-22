@@ -1,7 +1,7 @@
-package com.test.bidservice
+package com.test.bidservice.actor
 
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
-import com.test.bidservice.actor.BidActor
+import com.test.bidservice.actor
 import com.test.bidservice.actor.BidActor.{GetBidResponse, ProcessBid}
 import com.test.bidservice.model.campaign.Banner
 import com.test.bidservice.model.request._

@@ -17,8 +17,11 @@ object BidsApp {
   private def startHttpServer(routes: Route, system: ActorSystem[_]): Unit = {
     implicit val classicSystem: akka.actor.ActorSystem = system.toClassic
     import system.executionContext
-
-    val futureBinding = Http().bindAndHandle(routes, "localhost", 8080)
+    val futureBinding = Http().bindAndHandle(
+      routes,
+      system.settings.config.getString("my-app.routes.host"),
+      system.settings.config.getInt("my-app.routes.port")
+    )
     futureBinding.onComplete {
       case Success(binding) =>
         val address = binding.localAddress

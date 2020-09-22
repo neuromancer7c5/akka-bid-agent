@@ -59,11 +59,11 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
   }
 
   private [impl] def getBidRequestCountry(bidRequest: BidRequest): Option[String] = {
-    bidRequest.device.flatMap(device =>
-      device.geo.flatMap { geo =>
-        geo.country
-      }
-    )
+    for{
+      device <-bidRequest.device
+      geo <- device.geo
+      country <- geo.country
+    } yield country
   }
   private [impl] def compareDimension(requestValue: Option[Int],
                        requestMinValue: Option[Int],

@@ -1,4 +1,4 @@
-package com.test.bidservice
+package com.test.bidservice.route
 
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import akka.actor.typed.scaladsl.adapter._
@@ -8,7 +8,6 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.test.bidservice.actor.BidActor
 import com.test.bidservice.model.campaign.Banner
 import com.test.bidservice.model.request._
-import com.test.bidservice.route.BidRoutes
 import com.test.bidservice.service.BidRequestService
 import com.test.bidservice.util.{JsonMatcher, JsonSupport}
 import org.json4s.{DefaultFormats, Formats}
