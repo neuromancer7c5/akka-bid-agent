@@ -2,53 +2,39 @@ package com.test.bidservice.service.impl
 
 import com.test.bidservice.model.campaign.{Banner, Campaign}
 import com.test.bidservice.model.request.{BidRequest, Impression}
-import com.test.bidservice.model.response.{BannerWithPrice, BannerWithPriceBuilder}
 import com.test.bidservice.service.BidRequestService
 
 class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService {
 
-  override def processBid(bidRequest: BidRequest): Option[(String, Double, List[Banner])] = {
+  override def processBid(bidRequest: BidRequest): Option[(String, Double, Banner)] = {
     getBidRequestCountry(bidRequest).flatMap { country =>
-      campaigns.find(_.country.equals(country)).flatMap { campaign =>
-        if (compareSiteId(bidRequest.site.id, campaign.targeting.targetedSiteIds)) {
-          getBannersWithPrice(bidRequest, campaign)
-            .filterNot(_.isEmpty)
-            .map{ bannersWithPrice =>
-              val prices = bannersWithPrice.map(_.price)
-              val maxPrice = prices.max
-              val banners = bannersWithPrice.map(bannerWithPrice => Banner(
-                id = bannerWithPrice.id,
-                src = bannerWithPrice.src,
-                width = bannerWithPrice.width,
-                height = bannerWithPrice.height
-              )).distinct
-              (campaign.id.toString, maxPrice, banners)}
-        } else {
-          None
-        }
-      }
+      campaigns
+        .filter(_.country.equals(country))
+        .filter(_.targeting.targetedSiteIds.contains(bidRequest.site.id))
+        .flatMap { campaign =>
+          getBannersWithPrice(bidRequest, campaign).map(bannerWithPrice =>
+            (campaign.id.toString, bannerWithPrice._1, bannerWithPrice._2))
+        }.headOption
     }
   }
 
   def getBannersWithPrice(bidRequest: BidRequest,
-                          campaign: Campaign): Option[List[BannerWithPrice]] = {
+                          campaign: Campaign): List[(Double, Banner)] = {
     bidRequest.imp.map { impressions =>
       impressions.flatMap { impression =>
         val price = getPrice(impression.bidFloor.getOrElse(0.1d), campaign.bid)
-        price match {
-          case None => None
-          case Some(value) =>
-            val banners = getBanners(impression, campaign.banners)
-            banners.map(banner => BannerWithPriceBuilder(banner, value))
-        }
+        price.map { value =>
+          val banners = getBanners(impression, campaign.banners)
+          banners.map((value,_))
+        }.getOrElse(List.empty)
       }
-    }
+    }.getOrElse(List.empty)
   }
 
 
   def getPrice(requestBid: Double,
                campaignBid: Double): Option[Double] = {
-    if (requestBid >= campaignBid) {
+    if (requestBid <= campaignBid) {
       Some(requestBid)
     } else {
       None
@@ -72,14 +58,9 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
     )
   }
 
-  def compareSiteId(siteId: String,
-                    targetedSiteIds: LazyList[String]): Boolean = {
-    targetedSiteIds.exists(_.equals(siteId))
-  }
-
   def getBidRequestCountry(bidRequest: BidRequest): Option[String] = {
-    bidRequest.user.flatMap(user =>
-      user.geo.flatMap { geo =>
+    bidRequest.device.flatMap(device =>
+      device.geo.flatMap { geo =>
         geo.country
       }
     )
@@ -88,20 +69,20 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
                        requestMinValue: Option[Int],
                        requestMaxValue: Option[Int],
                        bannerValue: Int): Boolean = {
-    requestValue match {
-      case Some(value) => value <= bannerValue
-      case None =>
-        if (requestMinValue.isDefined && requestMaxValue.isDefined) {
-          val requestRange = Range.inclusive(
-            requestMinValue.getOrElse(0),
-            requestMaxValue.getOrElse(0)
-          )
-          requestRange.contains(bannerValue)
-        } else if (requestMinValue.isDefined) {
-          requestMinValue.getOrElse(0) <= bannerValue
-        } else {
-          requestMaxValue.getOrElse(0) >= bannerValue
-        }
+    (requestValue, requestMinValue, requestMaxValue)  match {
+      case (Some(value), _, _) => value == bannerValue
+      case (None, Some(minValue), Some(maxValue)) =>
+        val requestRange = Range.inclusive(
+          minValue,
+          maxValue
+        )
+        requestRange.contains(bannerValue)
+      case (None, Some(minValue), None) =>
+        minValue <= bannerValue
+      case (None, None, Some(maxValue)) =>
+        maxValue >= bannerValue
+      case (None, None, None) =>
+        false
     }
   }
 }

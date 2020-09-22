@@ -8,7 +8,7 @@ object CampaignHelper {
       id = 1,
       country = "US",
       targeting = Targeting(
-        targetedSiteIds = LazyList(
+        targetedSiteIds = Set(
           "cba08101646ca96430f0a3f3f0bf47d7",
           "nb24fb2304680a03ed98da403d7829530",
           "nfc045933fc6d70e03239f0ffa0e8f831",
@@ -41,7 +41,7 @@ object CampaignHelper {
       id = 2,
       country = "GB",
       targeting = Targeting(
-        targetedSiteIds = LazyList(
+        targetedSiteIds = Set(
           "39047682742541b5bfe026316aecc29c",
           "d02dc29c6bf9dbbefaff79d62941fd7c",
           "5acba17038bf17a24539143444e97750",
@@ -67,14 +67,14 @@ object CampaignHelper {
           height = 170
         )
       ),
-      bid = 3.33d
+      bid = 1.33d
     )
 
     val thirdCampaign = Campaign(
       id = 3,
       country = "LT",
       targeting = Targeting(
-        targetedSiteIds = LazyList(
+        targetedSiteIds = Set(
           "0006a522ce0f4bbbbaa6b3c38cafaa0f",
           "28b9993c0c297ebfd7d27fc32a5b27cf",
           "412970ee2cf5b321f719f49017e61a1",
@@ -100,7 +100,7 @@ object CampaignHelper {
           height = 250
         )
       ),
-      bid = 3.05d
+      bid = 3.25d
     )
 
     Seq(

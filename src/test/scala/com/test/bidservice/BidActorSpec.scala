@@ -5,7 +5,7 @@ import com.test.bidservice.actor.BidActor
 import com.test.bidservice.actor.BidActor.{GetBidResponse, ProcessBid}
 import com.test.bidservice.model.campaign.Banner
 import com.test.bidservice.model.request._
-import com.test.bidservice.model.response.{BannerWithPrice, BidResponse}
+import com.test.bidservice.model.response.BidResponse
 import com.test.bidservice.service.BidRequestService
 import org.mockito.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpecLike
@@ -64,12 +64,12 @@ class BidActorSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike  with 
           bidRequestId = requestId,
           price = bidFloor,
           adId = Some(adId),
-          banner = List(banner)
+          banner = Some(banner)
         ))
       )
       val replyProbe = createTestProbe[GetBidResponse]()
       val underTest = spawn(BidActor(bidRequestValidatorMock))
-      when(bidRequestValidatorMock.processBid(bidRequest)).thenReturn(Some((adId, bidFloor, List(banner))))
+      when(bidRequestValidatorMock.processBid(bidRequest)).thenReturn(Some((adId, bidFloor, banner)))
       underTest ! ProcessBid(bidRequest, replyProbe.ref)
       replyProbe.expectMessage(getBidResponse)
     }

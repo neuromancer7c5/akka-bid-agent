@@ -81,7 +81,7 @@ class BidRoutesSpec extends AnyWordSpecLike
       )
 
       val bidEntity = Marshal(bidRequest).to[MessageEntity].futureValue
-      when(bidRequestValidatorMock.processBid(bidRequest)).thenReturn(Some(("1", bidFloor, List(banner))))
+      when(bidRequestValidatorMock.processBid(bidRequest)).thenReturn(Some(("1", bidFloor, banner)))
 
       val request = Post("/bids").withEntity(bidEntity)
 
@@ -91,21 +91,20 @@ class BidRoutesSpec extends AnyWordSpecLike
         contentType should be (ContentTypes.`application/json`)
 
         entityAs[String] should haveJson("""
-          |{
-          |"id": "response1",
-          |"bidRequestId": "SGu1Jpq1IO",
-          |"price": 3.12123,
-          |"adId": "1",
-          |"banner":
-          |[
-          |{
-          |  "id": 1,
-          |  "height": 250,
-          |  "width": 300,
-          |  "src": "https://business.eskimi.com/wp-content/uploads/2020/06/openGraph.jpeg"
-          |}
-          |]
-        }""".stripMargin
+                                           |{
+                                           |"id": "response1",
+                                           |"bidRequestId": "SGu1Jpq1IO",
+                                           |"price": 3.12123,
+                                           |"adId": "1",
+                                           |"banner":
+                                           |{
+                                           |  "id": 1,
+                                           |  "height": 250,
+                                           |  "width": 300,
+                                           |  "src": "https://business.eskimi.com/wp-content/uploads/2020/06/openGraph.jpeg"
+                                           |}
+                                           |}"""
+          .stripMargin
         )
 
       }

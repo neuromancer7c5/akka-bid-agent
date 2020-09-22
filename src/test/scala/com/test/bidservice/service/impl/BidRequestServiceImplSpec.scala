@@ -1,7 +1,6 @@
 package com.test.bidservice.service.impl
 
 import com.test.bidservice.model.request._
-import com.test.bidservice.model.response.BannerWithPriceBuilder
 import com.test.bidservice.util.CampaignHelper
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
@@ -13,14 +12,14 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
 
   "compareDimension" should {
     "return true" when {
-      "request value less than banner value" in {
+      "request value equals to banner value" in {
 
         val bidFloor = 3.12123
         val impression = Impression(
           id = "1",
           wmin = Some(50),
           wmax = Some(300),
-          w = Some(300),
+          w = Some(350),
           hmin = Some(100),
           hmax = Some(300),
           h = Some(250),
@@ -40,8 +39,8 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
         val impression = Impression(
           id = "1",
           wmin = Some(50),
-          wmax = Some(300),
-          w = Some(300),
+          wmax = Some(400),
+          w = None,
           hmin = Some(100),
           hmax = Some(300),
           h = Some(250),
@@ -103,7 +102,7 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
 
   "getBidRequestCountry" should {
     "return country" when {
-      "user's geo country value is defined" in {
+      "device's geo country value is defined" in {
         val bidFloor = 3.12123
         val impression = Impression(
           id = "1",
@@ -181,7 +180,7 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
 
         bidRequestServiceImpl.getBidRequestCountry(bidRequest) should be(None)
       }
-      "user's geo is not defined" in {
+      "device's geo is not defined" in {
         val bidFloor = 3.12123
         val impression = Impression(
           id = "1",
@@ -216,7 +215,7 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
 
         bidRequestServiceImpl.getBidRequestCountry(bidRequest) should be(None)
       }
-      "user is not defined" in {
+      "device is not defined" in {
         val bidFloor = 3.12123
         val impression = Impression(
           id = "1",
@@ -232,7 +231,7 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
           id = "0006a522ce0f4bbbbaa6b3c38cafaa0f",
           domain = "fake.tld"
         )
-        val device = Device(
+        val user = BidUser(
           id = "440579f4b408831516ebd02f6e1c31b4",
           geo = None
         )
@@ -241,93 +240,11 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
           id = requestId,
           imp = Some(List(impression)),
           site = site,
-          user = None,
-          device = Some(device)
+          user = Some(user),
+          device = None
         )
 
         bidRequestServiceImpl.getBidRequestCountry(bidRequest) should be(None)
-      }
-    }
-  }
-  "compareSiteId" should {
-    "return true" when {
-      "campaign contains requested site id" in {
-        val bidFloor = 3.12123
-        val impression = Impression(
-          id = "1",
-          wmin = Some(50),
-          wmax = Some(300),
-          w = Some(300),
-          hmin = Some(100),
-          hmax = Some(300),
-          h = Some(250),
-          bidFloor = Some(bidFloor)
-        )
-        val site = Site(
-          id = "0006a522ce0f4bbbbaa6b3c38cafaa0f",
-          domain = "fake.tld"
-        )
-        val geo = Geo(
-          country = Some("LT")
-        )
-        val bidUser = BidUser(
-          id = "USARIO1",
-          geo = Some(geo)
-        )
-        val device = Device(
-          id = "440579f4b408831516ebd02f6e1c31b4",
-          geo = Some(geo)
-        )
-        val requestId = "SGu1Jpq1IO"
-        val bidRequest = BidRequest(
-          id = requestId,
-          imp = Some(List(impression)),
-          site = site,
-          user = Some(bidUser),
-          device = Some(device)
-        )
-        val campaignSiteIds = CampaignHelper.getCampaigns(2).targeting.targetedSiteIds
-        bidRequestServiceImpl.compareSiteId(bidRequest.site.id, campaignSiteIds) should be (true)
-      }
-    }
-    "return false" when {
-      "campaign doesn't contain requested site id" in {
-        val bidFloor = 3.12123
-        val impression = Impression(
-          id = "1",
-          wmin = Some(50),
-          wmax = Some(300),
-          w = Some(300),
-          hmin = Some(100),
-          hmax = Some(300),
-          h = Some(250),
-          bidFloor = Some(bidFloor)
-        )
-        val site = Site(
-          id = "0006a522ce0f4bbbbaa6b3c38cafaa0f",
-          domain = "fake.tld"
-        )
-        val geo = Geo(
-          country = Some("LT")
-        )
-        val bidUser = BidUser(
-          id = "USARIO1",
-          geo = Some(geo)
-        )
-        val device = Device(
-          id = "440579f4b408831516ebd02f6e1c31b4",
-          geo = Some(geo)
-        )
-        val requestId = "SGu1Jpq1IO"
-        val bidRequest = BidRequest(
-          id = requestId,
-          imp = Some(List(impression)),
-          site = site,
-          user = Some(bidUser),
-          device = Some(device)
-        )
-        val campaignSiteIds = CampaignHelper.getCampaigns.head.targeting.targetedSiteIds
-        bidRequestServiceImpl.compareSiteId(bidRequest.site.id, campaignSiteIds) should be (false)
       }
     }
   }
@@ -338,12 +255,12 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
         val bidFloor = 3.12123
         val impression = Impression(
           id = "1",
-          wmin = Some(50),
-          wmax = Some(300),
-          w = Some(300),
-          hmin = Some(100),
-          hmax = Some(300),
-          h = Some(250),
+          wmin = Some(300),
+          wmax = Some(700),
+          w = None,
+          hmin = Some(250),
+          hmax = Some(400),
+          h = None,
           bidFloor = Some(bidFloor)
         )
         val campaignBanners = CampaignHelper.getCampaigns(2).banners
@@ -357,10 +274,10 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
           id = "1",
           wmin = Some(50),
           wmax = Some(300),
-          w = Some(350),
+          w = Some(700),
           hmin = Some(100),
           hmax = Some(300),
-          h = Some(300),
+          h = Some(400),
           bidFloor = Some(bidFloor)
         )
         val campaignBanners = CampaignHelper.getCampaigns(2).banners
@@ -390,9 +307,9 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
 
   "getPrice" should{
     "return price" when{
-      "campaign bid is less then request bid" in {
+      "campaign bid is greater then request bid" in {
         val bidFloor = 3.12123
-        val campaignBid = CampaignHelper.getCampaigns(2).bid
+        val campaignBid = CampaignHelper.getCampaigns.head.bid
         bidRequestServiceImpl.getPrice(bidFloor, campaignBid) should be (Some(bidFloor))
       }
       "campaign bid and request bid are equals" in {
@@ -402,9 +319,9 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
       }
     }
     "return none" when{
-      "campaign bid is greater then request bid" in {
+      "campaign bid is less then request bid" in {
         val bidFloor = 3.12123
-        val campaignBid = CampaignHelper.getCampaigns.head.bid
+        val campaignBid = CampaignHelper.getCampaigns(1).bid
         bidRequestServiceImpl.getPrice(bidFloor, campaignBid) should be (None)
       }
     }
@@ -416,12 +333,12 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
         val bidFloor = 3.12123
         val impression = Impression(
           id = "1",
-          wmin = Some(50),
-          wmax = Some(300),
-          w = Some(300),
-          hmin = Some(100),
-          hmax = Some(300),
-          h = Some(250),
+          wmin = Some(300),
+          wmax = Some(700),
+          w = None,
+          hmin = Some(250),
+          hmax = Some(400),
+          h = None,
           bidFloor = Some(bidFloor)
         )
         val site = Site(
@@ -450,14 +367,10 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
         val campaign = CampaignHelper.getCampaigns(2)
 
         val expectedBannersWithPrice = List(
-          BannerWithPriceBuilder(
-            CampaignHelper.getCampaigns(2).banners.head,
-            bidFloor),
-          BannerWithPriceBuilder(
-            CampaignHelper.getCampaigns(2).banners(1),
-            bidFloor)
+          (bidFloor, CampaignHelper.getCampaigns(2).banners.head),
+          (bidFloor, CampaignHelper.getCampaigns(2).banners(1))
         )
-        bidRequestServiceImpl.getBannersWithPrice(bidRequest, campaign) should be (Some(expectedBannersWithPrice))
+        bidRequestServiceImpl.getBannersWithPrice(bidRequest, campaign) should be (expectedBannersWithPrice)
       }
       "it fits the size for each impression" in {
         val firstBidFloor = 3.12123
@@ -465,13 +378,13 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
           id = "1",
           wmin = Some(50),
           wmax = Some(300),
-          w = Some(400),
+          w = Some(700),
           hmin = Some(100),
           hmax = Some(300),
-          h = Some(250),
+          h = Some(400),
           bidFloor = Some(firstBidFloor)
         )
-        val secondBidFloor = 3.55
+        val secondBidFloor = 2.55
         val secondImpression = Impression(
           id = "1",
           wmin = Some(50),
@@ -508,17 +421,10 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
         val campaign = CampaignHelper.getCampaigns(2)
 
         val expectedBannersWithPrice = List(
-          BannerWithPriceBuilder(
-            CampaignHelper.getCampaigns(2).banners.head,
-            firstBidFloor),
-          BannerWithPriceBuilder(
-            CampaignHelper.getCampaigns(2).banners.head,
-            secondBidFloor),
-          BannerWithPriceBuilder(
-            CampaignHelper.getCampaigns(2).banners(1),
-            secondBidFloor)
+          (firstBidFloor, CampaignHelper.getCampaigns(2).banners.head),
+          (secondBidFloor, CampaignHelper.getCampaigns(2).banners(1))
         )
-        bidRequestServiceImpl.getBannersWithPrice(bidRequest, campaign) should be (Some(expectedBannersWithPrice))
+        bidRequestServiceImpl.getBannersWithPrice(bidRequest, campaign) should be (expectedBannersWithPrice)
       }
     }
     "return list with single banner" when {
@@ -528,10 +434,10 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
           id = "1",
           wmin = Some(50),
           wmax = Some(300),
-          w = Some(400),
+          w = Some(700),
           hmin = Some(100),
           hmax = Some(300),
-          h = Some(250),
+          h = Some(400),
           bidFloor = Some(bidFloor)
         )
         val site = Site(
@@ -560,11 +466,9 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
         val campaign = CampaignHelper.getCampaigns(2)
 
         val expectedBannersWithPrice = List(
-          BannerWithPriceBuilder(
-            CampaignHelper.getCampaigns(2).banners.head,
-            bidFloor)
+          (bidFloor, CampaignHelper.getCampaigns(2).banners.head)
         )
-        bidRequestServiceImpl.getBannersWithPrice(bidRequest, campaign) should be(Some(expectedBannersWithPrice))
+        bidRequestServiceImpl.getBannersWithPrice(bidRequest, campaign) should be(expectedBannersWithPrice)
       }
     }
     "return empty list" when {
@@ -605,7 +509,7 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
         )
         val campaign = CampaignHelper.getCampaigns(2)
         val expectedBannersWithPrice = List.empty
-        bidRequestServiceImpl.getBannersWithPrice(bidRequest, campaign) should be(Some(expectedBannersWithPrice))
+        bidRequestServiceImpl.getBannersWithPrice(bidRequest, campaign) should be(expectedBannersWithPrice)
       }
     }
   }
@@ -647,12 +551,10 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
           device = Some(device)
         )
 
-        val expectedBanners = List(
-            CampaignHelper.getCampaigns(2).banners.head,
-            CampaignHelper.getCampaigns(2).banners(1)
-        )
+        val expectedBanner = CampaignHelper.getCampaigns(2).banners(1)
+
         val expectedCampaignId = CampaignHelper.getCampaigns(2).id.toString
-        bidRequestServiceImpl.processBid(bidRequest) should be (Some((expectedCampaignId, bidFloor, expectedBanners)))
+        bidRequestServiceImpl.processBid(bidRequest) should be (Some((expectedCampaignId, bidFloor, expectedBanner)))
       }
     }
     "return None" when {
@@ -695,7 +597,7 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
         bidRequestServiceImpl.processBid(bidRequest) should be (None)
       }
       "request bid not matches with any campaign by bidFloor" in {
-        val bidFloor = 2.12123
+        val bidFloor = 4.12123
         val impression = Impression(
           id = "1",
           wmin = Some(50),

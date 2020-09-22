@@ -24,7 +24,7 @@ object BidActor {
           bidRequestId = message.bidRequest.id,
           price = result._2,
           adId = Some(result._1),
-          banner = result._3
+          banner = Some(result._3)
         )
       }
       message.replyTo ! GetBidResponse(response)
