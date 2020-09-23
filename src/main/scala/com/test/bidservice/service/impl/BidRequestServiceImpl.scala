@@ -71,10 +71,7 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
       deviceGeo <- device.geo
       deviceCountry <- deviceGeo.country
     } yield deviceCountry
-    if (country.isDefined) {
-      country
-    }
-    else {
+    country.orElse {
       for {
         user <- bidRequest.user
         userGeo <- user.geo
