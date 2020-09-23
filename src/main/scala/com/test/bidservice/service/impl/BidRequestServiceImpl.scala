@@ -13,15 +13,13 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
         .filter(_.targeting.targetedSiteIds.contains(bidRequest.site.id))
         .flatMap { campaign =>
           getBannersWithPrice(bidRequest, campaign)
-            .map(bannerWithPrice =>
-            (campaign.id.toString, bannerWithPrice._1, bannerWithPrice._2))
         }
         .headOption
     }
   }
 
   private [impl] def getBannersWithPrice(bidRequest: BidRequest,
-                                         campaign: Campaign): List[(Double, Banner)] = {
+                                         campaign: Campaign): List[(String, Double, Banner)] = {
     bidRequest.imp
       .map { impressions =>
         impressions.flatMap { impression =>
@@ -29,7 +27,7 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
           price
             .map { value =>
               val banners = getBanners(impression, campaign.banners)
-              banners.map((value,_))
+              banners.map((campaign.id.toString, value, _))
             }
             .getOrElse(List.empty)
         }

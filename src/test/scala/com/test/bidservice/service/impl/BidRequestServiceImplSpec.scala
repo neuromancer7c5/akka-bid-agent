@@ -401,8 +401,8 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
         val campaign = CampaignHelper.getCampaigns(2)
 
         val expectedBannersWithPrice = List(
-          (bidFloor, CampaignHelper.getCampaigns(2).banners.head),
-          (bidFloor, CampaignHelper.getCampaigns(2).banners(1))
+          (campaign.id.toString, bidFloor, CampaignHelper.getCampaigns(2).banners.head),
+          (campaign.id.toString, bidFloor, CampaignHelper.getCampaigns(2).banners(1))
         )
         bidRequestServiceImpl.getBannersWithPrice(bidRequest, campaign) should be (expectedBannersWithPrice)
       }
@@ -455,8 +455,8 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
         val campaign = CampaignHelper.getCampaigns(2)
 
         val expectedBannersWithPrice = List(
-          (firstBidFloor, CampaignHelper.getCampaigns(2).banners.head),
-          (secondBidFloor, CampaignHelper.getCampaigns(2).banners(1))
+          (campaign.id.toString, firstBidFloor, CampaignHelper.getCampaigns(2).banners.head),
+          (campaign.id.toString, secondBidFloor, CampaignHelper.getCampaigns(2).banners(1))
         )
         bidRequestServiceImpl.getBannersWithPrice(bidRequest, campaign) should be (expectedBannersWithPrice)
       }
@@ -500,7 +500,7 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
         val campaign = CampaignHelper.getCampaigns(2)
 
         val expectedBannersWithPrice = List(
-          (bidFloor, CampaignHelper.getCampaigns(2).banners.head)
+          (campaign.id.toString, bidFloor, CampaignHelper.getCampaigns(2).banners.head)
         )
         bidRequestServiceImpl.getBannersWithPrice(bidRequest, campaign) should be(expectedBannersWithPrice)
       }
