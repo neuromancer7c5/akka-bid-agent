@@ -88,11 +88,11 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
                                        bannerValue: Int): Boolean = {
     (requestValue, requestMinValue, requestMaxValue)  match {
       case (Some(value), _, _) => value == bannerValue
-      case (None, Some(minValue), Some(maxValue)) =>
+      case (_, Some(minValue), Some(maxValue)) =>
         (minValue to maxValue).contains(bannerValue)
-      case (None, Some(minValue), None) =>
+      case (_, Some(minValue), _) =>
         minValue <= bannerValue
-      case (None, None, Some(maxValue)) =>
+      case (_, _, Some(maxValue)) =>
         maxValue >= bannerValue
       case _ =>
         false
