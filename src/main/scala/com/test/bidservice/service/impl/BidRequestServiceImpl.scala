@@ -12,7 +12,9 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
         .filter(_.country == country)
         .filter(_.targeting.targetedSiteIds.contains(bidRequest.site.id))
         .flatMap { campaign =>
-          getBannersWithPrice(bidRequest, campaign).map(bannerWithPrice =>
+          getBannersWithPrice(bidRequest, campaign)
+            .headOption
+            .map(bannerWithPrice =>
             (campaign.id.toString, bannerWithPrice._1, bannerWithPrice._2))
         }
         .headOption
