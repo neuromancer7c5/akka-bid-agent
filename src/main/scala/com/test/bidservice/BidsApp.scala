@@ -19,8 +19,8 @@ object BidsApp {
     import system.executionContext
     val futureBinding = Http().bindAndHandle(
       routes,
-      system.settings.config.getString("my-app.routes.host"),
-      system.settings.config.getInt("my-app.routes.port")
+      system.settings.config.getString("my-app.host"),
+      system.settings.config.getInt("my-app.port")
     )
     futureBinding.onComplete {
       case Success(binding) =>

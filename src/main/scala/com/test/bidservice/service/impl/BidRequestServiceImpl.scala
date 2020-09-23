@@ -9,7 +9,7 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
   override def processBid(bidRequest: BidRequest): Option[(String, Double, Banner)] = {
     getBidRequestCountry(bidRequest).flatMap { country =>
       campaigns
-        .filter(_.country.equals(country))
+        .filter(_.country == country)
         .filter(_.targeting.targetedSiteIds.contains(bidRequest.site.id))
         .flatMap { campaign =>
           getBannersWithPrice(bidRequest, campaign).map(bannerWithPrice =>
@@ -49,13 +49,13 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
   private [impl] def getBanners(impression: Impression,
                                 banners: List[Banner]): List[Banner] = {
     banners.filter(banner =>
-      compareDimension(
+      validateDimension(
         impression.h,
         impression.hmin,
         impression.hmax,
         banner.height
       ) &&
-        compareDimension(
+        validateDimension(
           impression.w,
           impression.wmin,
           impression.wmax,
@@ -64,29 +64,35 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
   }
 
   private [impl] def getBidRequestCountry(bidRequest: BidRequest): Option[String] = {
-    for{
+    val country = for{
       device <-bidRequest.device
-      geo <- device.geo
-      country <- geo.country
-    } yield country
+      deviceGeo <- device.geo
+      deviceCountry <- deviceGeo.country
+    } yield deviceCountry
+    if (country.isDefined) {
+      country
+    }
+    else {
+      for {
+        user <- bidRequest.user
+        userGeo <- user.geo
+        userCountry <- userGeo.country
+      } yield userCountry
+    }
   }
-  private [impl] def compareDimension(requestValue: Option[Int],
-                                      requestMinValue: Option[Int],
-                                      requestMaxValue: Option[Int],
-                                      bannerValue: Int): Boolean = {
+  private [impl] def validateDimension(requestValue: Option[Int],
+                                       requestMinValue: Option[Int],
+                                       requestMaxValue: Option[Int],
+                                       bannerValue: Int): Boolean = {
     (requestValue, requestMinValue, requestMaxValue)  match {
       case (Some(value), _, _) => value == bannerValue
       case (None, Some(minValue), Some(maxValue)) =>
-        val requestRange = Range.inclusive(
-          minValue,
-          maxValue
-        )
-        requestRange.contains(bannerValue)
+        (minValue to maxValue).contains(bannerValue)
       case (None, Some(minValue), None) =>
         minValue <= bannerValue
       case (None, None, Some(maxValue)) =>
         maxValue >= bannerValue
-      case (None, None, None) =>
+      case _ =>
         false
     }
   }

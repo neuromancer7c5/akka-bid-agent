@@ -10,7 +10,7 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
 
   private val bidRequestServiceImpl = new BidRequestServiceImpl(CampaignHelper.getCampaigns)
 
-  "compareDimension" should {
+  "validateDimension" should {
     "return true" when {
       "request value equals to banner value" in {
 
@@ -26,7 +26,7 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
           bidFloor = Some(bidFloor)
         )
         val bannerValue = 350
-        bidRequestServiceImpl.compareDimension(
+        bidRequestServiceImpl.validateDimension(
           requestValue = impression.w,
           requestMinValue = impression.wmin,
           requestMaxValue = impression.wmax,
@@ -47,7 +47,7 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
           bidFloor = Some(bidFloor)
         )
         val bannerValue = 350
-        bidRequestServiceImpl.compareDimension(
+        bidRequestServiceImpl.validateDimension(
           requestValue = impression.w,
           requestMinValue = impression.wmin,
           requestMaxValue = impression.wmax,
@@ -69,7 +69,7 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
           bidFloor = Some(bidFloor)
         )
         val bannerValue = 250
-        bidRequestServiceImpl.compareDimension(
+        bidRequestServiceImpl.validateDimension(
           requestValue = impression.w,
           requestMinValue = impression.wmin,
           requestMaxValue = impression.wmax,
@@ -90,7 +90,7 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
           bidFloor = Some(bidFloor)
         )
         val bannerValue = 250
-        bidRequestServiceImpl.compareDimension(
+        bidRequestServiceImpl.validateDimension(
           requestValue = impression.w,
           requestMinValue = impression.wmin,
           requestMaxValue = impression.wmax,
@@ -140,9 +140,47 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
 
         bidRequestServiceImpl.getBidRequestCountry(bidRequest) should be(geo.country)
       }
+      "user's geo country value is defined and device's geo country is not" in {
+        val bidFloor = 3.12123
+        val impression = Impression(
+          id = "1",
+          wmin = Some(50),
+          wmax = Some(300),
+          w = Some(300),
+          hmin = Some(100),
+          hmax = Some(300),
+          h = Some(250),
+          bidFloor = Some(bidFloor)
+        )
+        val site = Site(
+          id = "0006a522ce0f4bbbbaa6b3c38cafaa0f",
+          domain = "fake.tld"
+        )
+        val geo = Geo(
+          country = Some("LT")
+        )
+        val bidUser = BidUser(
+          id = "USARIO1",
+          geo = Some(geo)
+        )
+        val device = Device(
+          id = "440579f4b408831516ebd02f6e1c31b4",
+          geo = Some(geo)
+        )
+        val requestId = "SGu1Jpq1IO"
+        val bidRequest = BidRequest(
+          id = requestId,
+          imp = Some(List(impression)),
+          site = site,
+          user = Some(bidUser),
+          device = None
+        )
+
+        bidRequestServiceImpl.getBidRequestCountry(bidRequest) should be(geo.country)
+      }
     }
     "return false" when {
-      "user's geo country value is not defined" in {
+      "geo country value is not defined" in {
         val bidFloor = 3.12123
         val impression = Impression(
           id = "1",
@@ -180,7 +218,7 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
 
         bidRequestServiceImpl.getBidRequestCountry(bidRequest) should be(None)
       }
-      "device's geo is not defined" in {
+      "geo is not defined" in {
         val bidFloor = 3.12123
         val impression = Impression(
           id = "1",
@@ -215,7 +253,7 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
 
         bidRequestServiceImpl.getBidRequestCountry(bidRequest) should be(None)
       }
-      "device is not defined" in {
+      "device and user is not defined" in {
         val bidFloor = 3.12123
         val impression = Impression(
           id = "1",
@@ -231,16 +269,12 @@ class BidRequestServiceImplSpec extends AnyWordSpecLike
           id = "0006a522ce0f4bbbbaa6b3c38cafaa0f",
           domain = "fake.tld"
         )
-        val user = BidUser(
-          id = "440579f4b408831516ebd02f6e1c31b4",
-          geo = None
-        )
         val requestId = "SGu1Jpq1IO"
         val bidRequest = BidRequest(
           id = requestId,
           imp = Some(List(impression)),
           site = site,
-          user = Some(user),
+          user = None,
           device = None
         )
 
