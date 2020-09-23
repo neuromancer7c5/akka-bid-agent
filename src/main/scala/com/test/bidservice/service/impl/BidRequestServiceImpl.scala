@@ -13,7 +13,6 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
         .filter(_.targeting.targetedSiteIds.contains(bidRequest.site.id))
         .flatMap { campaign =>
           getBannersWithPrice(bidRequest, campaign)
-            .headOption
             .map(bannerWithPrice =>
             (campaign.id.toString, bannerWithPrice._1, bannerWithPrice._2))
         }
@@ -86,7 +85,7 @@ class BidRequestServiceImpl(campaigns: Seq[Campaign]) extends BidRequestService 
     (requestValue, requestMinValue, requestMaxValue)  match {
       case (Some(value), _, _) => value == bannerValue
       case (_, Some(minValue), Some(maxValue)) =>
-        (minValue to maxValue).contains(bannerValue)
+        minValue <= bannerValue && maxValue >= bannerValue
       case (_, Some(minValue), _) =>
         minValue <= bannerValue
       case (_, _, Some(maxValue)) =>
