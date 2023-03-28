@@ -5,18 +5,22 @@ import akka.actor.typed.{ActorRef, ActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.{Directives, Route}
 import akka.util.Timeout
-import com.test.bidservice.actor.BidActor
+import com.test.bidservice.actor.AuctionActor.{GetAuctionResponse, StartAuction}
 import com.test.bidservice.actor.BidActor.{GetBidResponse, ProcessBid}
+import com.test.bidservice.actor.BidderActor.{GetBidderResponse, HandleBid}
+import com.test.bidservice.actor.{AuctionActor, BidActor, BidderActor}
 import com.test.bidservice.model.request.BidRequest
 import com.test.bidservice.util.JsonSupport
 
 import scala.concurrent.Future
 
 
-class BidRoutes(bidRegistry: ActorRef[BidActor.ProcessBid])
+class BidRoutes(bidRegistry: ActorRef[BidActor.ProcessBid],
+                bidderRegistry: ActorRef[BidderActor.HandleBid],
+                auctionRegistry: ActorRef[AuctionActor.StartAuction])
                (implicit val system: ActorSystem[_])
   extends Directives
-    with JsonSupport  {
+    with JsonSupport {
 
   private implicit val timeout: Timeout =
     Timeout.create(system.settings.config.getDuration("my-app.routes.ask-timeout"))
@@ -24,8 +28,14 @@ class BidRoutes(bidRegistry: ActorRef[BidActor.ProcessBid])
   def processBid(bidRequest: BidRequest): Future[GetBidResponse] =
     bidRegistry.ask(ProcessBid(bidRequest, _))
 
+  def processBidder(price: Double): Future[GetBidderResponse] =
+    bidderRegistry.ask(HandleBid(price, _))
+
+  def processAuction(): Future[GetAuctionResponse] =
+    auctionRegistry.ask(StartAuction)
+
   val bidRoutes: Route =
-    pathPrefix("bids") {
+    pathPrefix(RoutePathNames.BidRequest) {
       pathEnd {
         post {
           entity(as[BidRequest]) { bidRequest =>
@@ -38,5 +48,25 @@ class BidRoutes(bidRegistry: ActorRef[BidActor.ProcessBid])
           }
         }
       }
+    } ~
+  pathPrefix(RoutePathNames.Bidder) {
+    pathEnd {
+      post {
+        parameters(QueryParameters.Price.as[Double], QueryParameters.Dsp) { (price, _) =>
+          onSuccess(processBidder(price)) { resp =>
+            complete(resp.bidderResponse)
+          }
+        }
+      }
     }
+  } ~
+  pathPrefix(RoutePathNames.Auction) {
+    pathEnd {
+      post {
+        onSuccess(processAuction()) { resp =>
+          complete(resp.auctionResponse)
+        }
+      }
+    }
+  }
 }

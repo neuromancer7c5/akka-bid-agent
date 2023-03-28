@@ -5,9 +5,10 @@ import akka.actor.typed.scaladsl.adapter._
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
-import com.test.bidservice.actor.BidActor
+import com.test.bidservice.actor.{AuctionActor, BidActor, BidderActor}
+import com.test.bidservice.config.DspConfig
 import com.test.bidservice.route.BidRoutes
-import com.test.bidservice.service.impl.BidRequestServiceImpl
+import com.test.bidservice.service.impl.{AuctionServiceImpl, BidRequestSenderServiceImpl, BidRequestServiceImpl, BidderServiceImpl}
 import com.test.bidservice.util.CampaignHelper
 
 import scala.util.Failure
@@ -33,11 +34,27 @@ object BidsApp {
   }
   def main(args: Array[String]): Unit = {
     val rootBehavior = Behaviors.setup[Nothing] { context =>
+      implicit val system: ActorSystem[Nothing] = context.system
+      val price = system.settings.config.getDouble("my-app.dsps.default-price")
+      val ids = system.settings.config.getString("my-app.dsps.ids")
+      val dsps = ids.split(",").toSeq.map{id =>
+        val dspConfig = system.settings.config.getConfig(s"my-app.dsps.$id")
+        DspConfig.fromConfig(dspConfig)
+      }
       val bidRequestValidator = new BidRequestServiceImpl(CampaignHelper.getCampaigns)
       val bidRegistryActor = context.spawn(BidActor(bidRequestValidator), "BidRegistryActor")
       context.watch(bidRegistryActor)
 
-      val routes = new BidRoutes(bidRegistryActor)(context.system)
+      val bidderService = new BidderServiceImpl
+      val bidderActor = context.spawn(BidderActor(bidderService), "BidderRegistryActor")
+      context.watch(bidRegistryActor)
+
+      val requestSenderService = new BidRequestSenderServiceImpl(price)
+      val auctionService = new AuctionServiceImpl(requestSenderService, dsps)
+      val auctionActor = context.spawn(AuctionActor(auctionService), "AuctionRegistryActor")
+      context.watch(bidRegistryActor)
+
+      val routes = new BidRoutes(bidRegistryActor, bidderActor, auctionActor)(context.system)
       startHttpServer(routes.bidRoutes, context.system)
 
       Behaviors.empty
